@@ -84,9 +84,9 @@ size_t PatternCountStr(const string& str, const string& pattern)
 }
 
 
-deque<size_t> SplitString(const string& str, const string &splitter = " ")
+deque<float> SplitString(const string& str, const string &splitter = " ")
 {
-	deque<size_t> res;
+	deque<float> res;
 	auto tmpstr = str;
 	size_t space = tmpstr.find(splitter);
 	while (space != tmpstr.npos)
@@ -137,7 +137,7 @@ const enum Directions
 //буду делать нерекурсивный метод, потому что рекурсия воняет стэком
 int main(int argc, char** argv)
 {
-	deque<deque<size_t>> rows;
+	deque<deque<float>> rows;
 	deque<deque<size_t>> sums;
 	deque<deque<bool>> sumsInited;
 	deque<deque<char>> comedfrom;
@@ -194,6 +194,8 @@ int main(int argc, char** argv)
 	auto x2 = stoi(EndPoint.substr(0, slash));
 	auto y2 = stoi(EndPoint.substr(slash + 1));
 
+	float kef = 0.7071;
+
 	//прохожусь, пока есть хотя бы одна недосчитанная точка
 	while (NotEndedExists(PointsToGo, EndPoint))
 	{
@@ -210,9 +212,14 @@ int main(int argc, char** argv)
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки налево
-				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] - 1];
+				bool isdiagonal = comedfrom[indexes[0]][indexes[1]] == Directions::top || comedfrom[indexes[0]][indexes[1]] == Directions::bot;
+				float sum;
+				if (isdiagonal)
+					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] - 1] * kef;
+				else
+					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] - 1];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (!sumsInited[indexes[0]][indexes[1] - 1] || sum < sums[indexes[0]][indexes[1] - 1])
+				if (!sumsInited[indexes[0]][indexes[1] - 1] || sum < sums[indexes[0]][indexes[1] - 1] || (isdiagonal && sum <= sums[indexes[0]][indexes[1] - 1]))
 				{
 					sumsInited[indexes[0]][indexes[1] - 1] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0]) + "/" + to_string(indexes[1] - 1), sum));
@@ -227,9 +234,14 @@ int main(int argc, char** argv)
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки вверх
-				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] - 1][indexes[1]];
+				bool isdiagonal = comedfrom[indexes[0]][indexes[1]] == Directions::left || comedfrom[indexes[0]][indexes[1]] == Directions::right;
+				float sum;
+				if (isdiagonal)
+					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] - 1][indexes[1]] * kef;
+				else
+					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] - 1][indexes[1]];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (!sumsInited[indexes[0] - 1][indexes[1]] || sum < sums[indexes[0] - 1][indexes[1]])
+				if (!sumsInited[indexes[0] - 1][indexes[1]] || sum < sums[indexes[0] - 1][indexes[1]] || (isdiagonal && sum <= sums[indexes[0] - 1][indexes[1]]))
 				{
 					sumsInited[indexes[0] - 1][indexes[1]] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0] - 1) + "/" + to_string(indexes[1]), sum));
@@ -244,9 +256,14 @@ int main(int argc, char** argv)
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки направо
-				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] + 1];
+				bool isdiagonal = comedfrom[indexes[0]][indexes[1]] == Directions::top || comedfrom[indexes[0]][indexes[1]] == Directions::bot;
+				float sum;
+				if (isdiagonal)
+					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] + 1] * kef;
+				else
+					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] + 1];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (!sumsInited[indexes[0]][indexes[1] + 1] || sum < sums[indexes[0]][indexes[1] + 1])
+				if (!sumsInited[indexes[0]][indexes[1] + 1] || sum < sums[indexes[0]][indexes[1] + 1] || (isdiagonal && sum <= sums[indexes[0]][indexes[1] + 1]))
 				{
 					sumsInited[indexes[0]][indexes[1] + 1] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0]) + "/" + to_string(indexes[1] + 1), sum));
@@ -261,9 +278,14 @@ int main(int argc, char** argv)
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки вниз
-				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] + 1][indexes[1]];
+				bool isdiagonal = comedfrom[indexes[0]][indexes[1]] == Directions::left || comedfrom[indexes[0]][indexes[1]] == Directions::right;
+				float sum;
+				if (isdiagonal)
+					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] + 1][indexes[1]] * kef;
+				else
+					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] + 1][indexes[1]];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (!sumsInited[indexes[0] + 1][indexes[1]] || sum < sums[indexes[0] + 1][indexes[1]])
+				if (!sumsInited[indexes[0] + 1][indexes[1]] || sum < sums[indexes[0] + 1][indexes[1]] || (isdiagonal && sum <= sums[indexes[0] + 1][indexes[1]]))
 				{
 					sumsInited[indexes[0] + 1][indexes[1]] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0] + 1) + "/" + to_string(indexes[1]), sum));
@@ -271,7 +293,6 @@ int main(int argc, char** argv)
 					comedfrom[indexes[0] + 1][indexes[1]] = Directions::top;
 				}
 			}
-
 		}
 
 		//очищаю пройденные точки
@@ -300,24 +321,48 @@ int main(int argc, char** argv)
 		cout << endl;
 	}
 
-	size_t len = 0;
+	float len = 0;
 	string curcell = EndPoint;
+	char lastmove = Directions::none;
 	while (curcell != StartPoint)
 	{
 		auto indexes = SplitString(curcell, "/");
 		auto i = indexes[0];
 		auto j = indexes[1];
-		len += rows[i][j];
+		bool isdiagonal = false;
 		if (comedfrom[i][j] == Directions::left)
+		{
+			if (lastmove == Directions::top || lastmove == Directions::bot)
+				isdiagonal = true;
 			indexes[1]--;
+		}
 		else if (comedfrom[i][j] == Directions::top)
+		{
+			if (lastmove == Directions::left || lastmove == Directions::right)
+				isdiagonal = true;
 			indexes[0]--;
+		}
 		else if (comedfrom[i][j] == Directions::right)
+		{
+			if (lastmove == Directions::top || lastmove == Directions::bot)
+				isdiagonal = true;
 			indexes[1]++;
+		}
 		else if (comedfrom[i][j] == Directions::bot)
+		{
+			if (lastmove == Directions::left || lastmove == Directions::right)
+				isdiagonal = true;
 			indexes[0]++;
+		}
 
-		curcell = to_string(indexes[0]) + "/" + to_string(indexes[1]);
+		if (isdiagonal)
+			len += (rows[i][j] * kef);
+		else
+			len += rows[i][j];
+
+		lastmove = comedfrom[i][j];
+
+		curcell = to_string(size_t(indexes[0])) + "/" + to_string(size_t(indexes[1]));
 	}
 	len += rows[x][y];
 
