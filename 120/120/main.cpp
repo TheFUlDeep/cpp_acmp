@@ -155,7 +155,7 @@ int main(int argc, char** argv)
 			{
 				if (i > 0)
 				{
-					auto colums = SplitString(line,"\t");
+					auto colums = SplitString(line);
 					rows.push_back(colums);
 
 					deque<size_t> s;
@@ -182,10 +182,11 @@ int main(int argc, char** argv)
 	auto x = stoi(StartPoint.substr(0, slash));
 	auto y = stoi(StartPoint.substr(slash + 1));
 	PointsToGo.push_back(IndexesAndSum(StartPoint,rows[x][y]));
+	//sums[x][y] = 0;
 	//sums[stoi(StartPoint.substr(0, slash))][stoi(StartPoint.substr(slash + 1))] = 10;
 
-	string EndPoint = "0/0";
-	slash = StartPoint.find("/");
+	string EndPoint = "0/3";
+	slash = EndPoint.find("/");
 	auto x2 = stoi(EndPoint.substr(0, slash));
 	auto y2 = stoi(EndPoint.substr(slash + 1));
 
@@ -292,7 +293,7 @@ int main(int argc, char** argv)
 	}
 
 
-	FileWrite(argv[0], "output.txt", to_string(sums[x2][y2]));
+	//FileWrite(argv[0], "output.txt", to_string(sums[x2][y2]));
 
 	return 0;
 }
