@@ -139,6 +139,7 @@ int main(int argc, char** argv)
 {
 	deque<deque<size_t>> rows;
 	deque<deque<size_t>> sums;
+	deque<deque<bool>> sumsInited;
 	deque<deque<char>> comedfrom;
 
 	//преобразовываю строки в двумерную деку
@@ -159,13 +160,16 @@ int main(int argc, char** argv)
 					rows.push_back(colums);
 
 					deque<size_t> s;
+					deque<bool> si;
 					deque<char> c;
 					for (size_t i = 0; i < colums.size(); i++)
 					{
-						s.push_back(-1);
+						s.push_back(0);
+						si.push_back(false);
 						c.push_back(Directions::none);
 					}
 					sums.push_back(s);
+					sumsInited.push_back(si);
 					comedfrom.push_back(c);
 
 				}
@@ -185,7 +189,7 @@ int main(int argc, char** argv)
 	//sums[x][y] = 0;
 	//sums[stoi(StartPoint.substr(0, slash))][stoi(StartPoint.substr(slash + 1))] = 10;
 
-	string EndPoint = "0/3";
+	string EndPoint = "0/0";
 	slash = EndPoint.find("/");
 	auto x2 = stoi(EndPoint.substr(0, slash));
 	auto y2 = stoi(EndPoint.substr(slash + 1));
@@ -208,8 +212,9 @@ int main(int argc, char** argv)
 				//считаю сумму до следующей точки налево
 				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] - 1];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (sum < sums[indexes[0]][indexes[1] - 1])
+				if (!sumsInited[indexes[0]][indexes[1] - 1] || sum < sums[indexes[0]][indexes[1] - 1])
 				{
+					sumsInited[indexes[0]][indexes[1] - 1] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0]) + "/" + to_string(indexes[1] - 1), sum));
 					sums[indexes[0]][indexes[1] - 1] = sum;
 					comedfrom[indexes[0]][indexes[1] - 1] = Directions::right;
@@ -224,8 +229,9 @@ int main(int argc, char** argv)
 				//считаю сумму до следующей точки вверх
 				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] - 1][indexes[1]];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (sum < sums[indexes[0] - 1][indexes[1]])
+				if (!sumsInited[indexes[0] - 1][indexes[1]] || sum < sums[indexes[0] - 1][indexes[1]])
 				{
+					sumsInited[indexes[0] - 1][indexes[1]] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0] - 1) + "/" + to_string(indexes[1]), sum));
 					sums[indexes[0] - 1][indexes[1]] = sum;
 					comedfrom[indexes[0] - 1][indexes[1]] = Directions::bot;
@@ -240,8 +246,9 @@ int main(int argc, char** argv)
 				//считаю сумму до следующей точки направо
 				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] + 1];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (sum < sums[indexes[0]][indexes[1] + 1])
+				if (!sumsInited[indexes[0]][indexes[1] + 1] || sum < sums[indexes[0]][indexes[1] + 1])
 				{
+					sumsInited[indexes[0]][indexes[1] + 1] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0]) + "/" + to_string(indexes[1] + 1), sum));
 					sums[indexes[0]][indexes[1] + 1] = sum;
 					comedfrom[indexes[0]][indexes[1] + 1] = Directions::left;
@@ -256,8 +263,9 @@ int main(int argc, char** argv)
 				//считаю сумму до следующей точки вниз
 				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] + 1][indexes[1]];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (sum < sums[indexes[0] + 1][indexes[1]])
+				if (!sumsInited[indexes[0] + 1][indexes[1]] || sum < sums[indexes[0] + 1][indexes[1]])
 				{
+					sumsInited[indexes[0] + 1][indexes[1]] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0] + 1) + "/" + to_string(indexes[1]), sum));
 					sums[indexes[0] + 1][indexes[1]] = sum;
 					comedfrom[indexes[0] + 1][indexes[1]] = Directions::top;
@@ -292,8 +300,29 @@ int main(int argc, char** argv)
 		cout << endl;
 	}
 
+	size_t len = 0;
+	string curcell = EndPoint;
+	while (curcell != StartPoint)
+	{
+		auto indexes = SplitString(curcell, "/");
+		auto i = indexes[0];
+		auto j = indexes[1];
+		len += rows[i][j];
+		if (comedfrom[i][j] == Directions::left)
+			indexes[1]--;
+		else if (comedfrom[i][j] == Directions::top)
+			indexes[0]--;
+		else if (comedfrom[i][j] == Directions::right)
+			indexes[1]++;
+		else if (comedfrom[i][j] == Directions::bot)
+			indexes[0]++;
 
-	//FileWrite(argv[0], "output.txt", to_string(sums[x2][y2]));
+		curcell = to_string(indexes[0]) + "/" + to_string(indexes[1]);
+	}
+	len += rows[x][y];
+
+
+	FileWrite(argv[0], "output.txt", to_string(len));
 
 	return 0;
 }
