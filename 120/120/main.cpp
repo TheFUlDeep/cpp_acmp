@@ -212,14 +212,13 @@ int main(int argc, char** argv)
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки налево
-				bool isdiagonal = comedfrom[indexes[0]][indexes[1]] == Directions::top || comedfrom[indexes[0]][indexes[1]] == Directions::bot;
 				float sum;
-				if (isdiagonal)
+				if (comedfrom[indexes[0]][indexes[1]] == Directions::top || comedfrom[indexes[0]][indexes[1]] == Directions::bot)
 					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] - 1] * kef;
 				else
 					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] - 1];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (!sumsInited[indexes[0]][indexes[1] - 1] || sum < sums[indexes[0]][indexes[1] - 1] || (isdiagonal && sum <= sums[indexes[0]][indexes[1] - 1]))
+				if (!sumsInited[indexes[0]][indexes[1] - 1] || sum < sums[indexes[0]][indexes[1] - 1])
 				{
 					sumsInited[indexes[0]][indexes[1] - 1] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0]) + "/" + to_string(indexes[1] - 1), sum));
@@ -234,14 +233,13 @@ int main(int argc, char** argv)
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки вверх
-				bool isdiagonal = comedfrom[indexes[0]][indexes[1]] == Directions::left || comedfrom[indexes[0]][indexes[1]] == Directions::right;
 				float sum;
-				if (isdiagonal)
+				if (comedfrom[indexes[0]][indexes[1]] == Directions::left || comedfrom[indexes[0]][indexes[1]] == Directions::right)
 					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] - 1][indexes[1]] * kef;
 				else
 					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] - 1][indexes[1]];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (!sumsInited[indexes[0] - 1][indexes[1]] || sum < sums[indexes[0] - 1][indexes[1]] || (isdiagonal && sum <= sums[indexes[0] - 1][indexes[1]]))
+				if (!sumsInited[indexes[0] - 1][indexes[1]] || sum < sums[indexes[0] - 1][indexes[1]])
 				{
 					sumsInited[indexes[0] - 1][indexes[1]] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0] - 1) + "/" + to_string(indexes[1]), sum));
@@ -256,14 +254,13 @@ int main(int argc, char** argv)
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки направо
-				bool isdiagonal = comedfrom[indexes[0]][indexes[1]] == Directions::top || comedfrom[indexes[0]][indexes[1]] == Directions::bot;
 				float sum;
-				if (isdiagonal)
+				if (comedfrom[indexes[0]][indexes[1]] == Directions::top || comedfrom[indexes[0]][indexes[1]] == Directions::bot)
 					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] + 1] * kef;
 				else
 					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] + 1];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (!sumsInited[indexes[0]][indexes[1] + 1] || sum < sums[indexes[0]][indexes[1] + 1] || (isdiagonal && sum <= sums[indexes[0]][indexes[1] + 1]))
+				if (!sumsInited[indexes[0]][indexes[1] + 1] || sum < sums[indexes[0]][indexes[1] + 1])
 				{
 					sumsInited[indexes[0]][indexes[1] + 1] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0]) + "/" + to_string(indexes[1] + 1), sum));
@@ -278,14 +275,13 @@ int main(int argc, char** argv)
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки вниз
-				bool isdiagonal = comedfrom[indexes[0]][indexes[1]] == Directions::left || comedfrom[indexes[0]][indexes[1]] == Directions::right;
 				float sum;
-				if (isdiagonal)
+				if (comedfrom[indexes[0]][indexes[1]] == Directions::left || comedfrom[indexes[0]][indexes[1]] == Directions::right)
 					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] + 1][indexes[1]] * kef;
 				else
 					sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] + 1][indexes[1]];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (!sumsInited[indexes[0] + 1][indexes[1]] || sum < sums[indexes[0] + 1][indexes[1]] || (isdiagonal && sum <= sums[indexes[0] + 1][indexes[1]]))
+				if (!sumsInited[indexes[0] + 1][indexes[1]] || sum < sums[indexes[0] + 1][indexes[1]])
 				{
 					sumsInited[indexes[0] + 1][indexes[1]] = true;
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0] + 1) + "/" + to_string(indexes[1]), sum));
