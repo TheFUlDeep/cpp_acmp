@@ -108,55 +108,38 @@ class IndexesAndSum
 {
 public:
 	string indexes = "";
-	size_t sum = 0;
 	bool NeedClear = false;
 
 	IndexesAndSum(const string& str, const size_t sum)
 	{
 		indexes = str;
-		this->sum = sum;
 		NeedClear = false;
 	}
 };
 
-//поиск минимальной суммы для прохождения к точке
-size_t FindMinSumByIndex(const deque<IndexesAndSum>& points, const size_t& rowIndex, const size_t& columnIndex)
+bool NotEndedExists(const deque<IndexesAndSum>& points, string& endpoint)
 {
-	auto index = to_string(rowIndex) + "/" + to_string(columnIndex);
-	deque<size_t> foundindexes;
 	for (size_t i = 0; i < points.size(); i++)
-	{
-		if (points[i].indexes == index)
-			foundindexes.push_back(i);
-	}
-
-	if (foundindexes.size() == 0)
-		return -1;
-	else
-	{
-		size_t min = -1;
-		for (size_t i = 0; i < foundindexes.size(); i++)
-		{
-			if (points[foundindexes[i]].sum < min)
-				min = points[foundindexes[i]].sum;
-		}
-		return min;
-	}
-}
-
-bool NotEndedExists(const deque<IndexesAndSum>& points, const deque<deque<size_t>>& rows)
-{
-	string maxindex = to_string(rows.size() - 1) + "/" + to_string(rows[0].size() - 1);
-	for (size_t i = 0; i < points.size(); i++)
-		if (points[i].indexes != maxindex)
+		if (points[i].indexes != endpoint)
 			return true;
 	return false;
 }
+
+const enum Directions
+{
+	top,
+	bot,
+	left,
+	right,
+	none
+};
 
 //буду делать нерекурсивный метод, потому что рекурсия воняет стэком
 int main(int argc, char** argv)
 {
 	deque<deque<size_t>> rows;
+	deque<deque<size_t>> sums;
+	deque<deque<char>> comedfrom;
 
 	//преобразовываю строки в двумерную деку
 	string fullpath(argv[0]);
@@ -172,19 +155,42 @@ int main(int argc, char** argv)
 			{
 				if (i > 0)
 				{
-					rows.push_back(SplitString(line));
+					auto colums = SplitString(line,"\t");
+					rows.push_back(colums);
+
+					deque<size_t> s;
+					deque<char> c;
+					for (size_t i = 0; i < colums.size(); i++)
+					{
+						s.push_back(-1);
+						c.push_back(Directions::none);
+					}
+					sums.push_back(s);
+					comedfrom.push_back(c);
+
 				}
 				i++;
 			}
 		}
 	}
+	//sums[0][0] = rows[0][0];
 
 	//запоминаю все точки, откуда могу двигаться (до куда уже нашел минимальную сумму)
 	deque<IndexesAndSum> PointsToGo;
-	PointsToGo.push_back(IndexesAndSum("0/0",rows[0][0]));
+	string StartPoint = to_string(rows.size() - 1) + "/" + to_string(rows[0].size() - 1);
+	auto slash = StartPoint.find("/");
+	auto x = stoi(StartPoint.substr(0, slash));
+	auto y = stoi(StartPoint.substr(slash + 1));
+	PointsToGo.push_back(IndexesAndSum(StartPoint,rows[x][y]));
+	//sums[stoi(StartPoint.substr(0, slash))][stoi(StartPoint.substr(slash + 1))] = 10;
+
+	string EndPoint = "0/0";
+	slash = StartPoint.find("/");
+	auto x2 = stoi(EndPoint.substr(0, slash));
+	auto y2 = stoi(EndPoint.substr(slash + 1));
 
 	//прохожусь, пока есть хотя бы одна недосчитанная точка
-	while (NotEndedExists(PointsToGo,rows))
+	while (NotEndedExists(PointsToGo, EndPoint))
 	{
 		//запоминаю количество точек которое надо пройти, потому что сюда же буду пихать новые
 		size_t c = PointsToGo.size();
@@ -193,16 +199,52 @@ int main(int argc, char** argv)
 			//преобразовывю строковы индекс в числовой
 			auto indexes = SplitString(PointsToGo[i].indexes,"/");
 
+			//если есть возможность пойти налево
+			if (indexes[1] > 0)
+			{
+				//так как точка пройдена, отмечаю ее для очстки
+				PointsToGo[i].NeedClear = true;
+				//считаю сумму до следующей точки налево
+				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] - 1];
+				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
+				if (sum < sums[indexes[0]][indexes[1] - 1])
+				{
+					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0]) + "/" + to_string(indexes[1] - 1), sum));
+					sums[indexes[0]][indexes[1] - 1] = sum;
+					comedfrom[indexes[0]][indexes[1] - 1] = Directions::right;
+				}
+			}
+
+			//если есть возможность пойти вверх
+			if (indexes[0] > 0)
+			{
+				//так как точка пройдена, отмечаю ее для очстки
+				PointsToGo[i].NeedClear = true;
+				//считаю сумму до следующей точки вверх
+				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] - 1][indexes[1]];
+				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
+				if (sum < sums[indexes[0] - 1][indexes[1]])
+				{
+					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0] - 1) + "/" + to_string(indexes[1]), sum));
+					sums[indexes[0] - 1][indexes[1]] = sum;
+					comedfrom[indexes[0] - 1][indexes[1]] = Directions::bot;
+				}
+			}
+
 			//если есть возможность пойти направо
 			if (indexes[1] < rows[indexes[0]].size() - 1)
 			{
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки направо
-				auto sum = PointsToGo[i].sum + rows[indexes[0]][indexes[1] + 1];
+				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0]][indexes[1] + 1];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (sum < FindMinSumByIndex(PointsToGo, indexes[0], indexes[1] + 1))
+				if (sum < sums[indexes[0]][indexes[1] + 1])
+				{
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0]) + "/" + to_string(indexes[1] + 1), sum));
+					sums[indexes[0]][indexes[1] + 1] = sum;
+					comedfrom[indexes[0]][indexes[1] + 1] = Directions::left;
+				}
 			}
 
 			//если есть возможность пойти вниз
@@ -211,19 +253,46 @@ int main(int argc, char** argv)
 				//так как точка пройдена, отмечаю ее для очстки
 				PointsToGo[i].NeedClear = true;
 				//считаю сумму до следующей точки вниз
-				auto sum = PointsToGo[i].sum + rows[indexes[0] + 1][indexes[1]];
+				auto sum = sums[indexes[0]][indexes[1]] + rows[indexes[0] + 1][indexes[1]];
 				//если на этой точке сущетсвует меньшая сумма, то беру меньшую
-				if (sum < FindMinSumByIndex(PointsToGo, indexes[0] + 1, indexes[1]))
+				if (sum < sums[indexes[0] + 1][indexes[1]])
+				{
 					PointsToGo.push_back(IndexesAndSum(to_string(indexes[0] + 1) + "/" + to_string(indexes[1]), sum));
+					sums[indexes[0] + 1][indexes[1]] = sum;
+					comedfrom[indexes[0] + 1][indexes[1]] = Directions::top;
+				}
 			}
+
 		}
 
 		//очищаю пройденные точки
-		while (PointsToGo.front().NeedClear)
+		while (!PointsToGo.empty() && PointsToGo.front().NeedClear)
 			PointsToGo.pop_front();
 	}
 
-	FileWrite(argv[0], "output.txt", to_string(FindMinSumByIndex(PointsToGo,rows.size() - 1,rows[0].size() - 1)));
+
+	for (size_t i = 0; i < comedfrom.size(); i++)
+	{
+		for (size_t j = 0; j < comedfrom[i].size(); j++)
+		{
+			if (i == stoi(StartPoint.substr(0, slash)) && j == stoi(StartPoint.substr(slash + 1)))
+				cout << "x ";
+			else if (comedfrom[i][j] == Directions::left)
+				cout << "< ";
+			else if (comedfrom[i][j] == Directions::top)
+				cout << "^ ";
+			else if (comedfrom[i][j] == Directions::right)
+				cout << "> ";
+			else if (comedfrom[i][j] == Directions::bot)
+				cout << "_ ";
+			else
+				cout << "x ";
+		}
+		cout << endl;
+	}
+
+
+	FileWrite(argv[0], "output.txt", to_string(sums[x2][y2]));
 
 	return 0;
 }
